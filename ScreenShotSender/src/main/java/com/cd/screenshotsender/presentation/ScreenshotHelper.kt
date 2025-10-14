@@ -74,11 +74,6 @@ internal class ScreenshotHelper(
         }, 200)
     }
 
-    private fun getNavBarHeight(context: Context): Int {
-        val resId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        return if (resId > 0) context.resources.getDimensionPixelSize(resId) else 0
-    }
-
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
     private fun getStatusBarHeight(context: Context): Int {
         val resId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
@@ -103,13 +98,12 @@ internal class ScreenshotHelper(
         val bitmap = createBitmap(image.width + rowPadding / pixelStride, image.height)
         bitmap.copyPixelsFromBuffer(buffer)
         val statusBarHeight = getStatusBarHeight(context)
-        val navBarHeight = getNavBarHeight(context)
         return Bitmap.createBitmap(
             bitmap,
             0,
             statusBarHeight,
             bitmap.width,
-            bitmap.height - statusBarHeight - navBarHeight
+            bitmap.height - statusBarHeight
         )
     }
 }
