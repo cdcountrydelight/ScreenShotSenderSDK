@@ -1,5 +1,6 @@
 package com.cd.screenshotsender.presentation.service
 
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -56,13 +57,16 @@ internal class ScreenShotSenderService : Service() {
             }
 
             else -> {
-                val packageName = intent?.getStringExtra("packageName") ?: this.packageName
-                instance?.overlayManager?.setPackageName(packageName)
                 startForeground(NOTIFICATION_ID, createNotification())
+                val packageName = intent?.getStringExtra("packageName") ?: this.packageName
+                val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_CANCELED)
+                    ?: return START_NOT_STICKY
+                val data = intent.getParcelableExtra<Intent>("data") ?: return START_NOT_STICKY
+                overlayManager.setMediaProjectionData(resultCode, data)
+                instance?.overlayManager?.setPackageName(packageName)
                 overlayManager.showOverlay()
             }
         }
-
         return START_STICKY
     }
 

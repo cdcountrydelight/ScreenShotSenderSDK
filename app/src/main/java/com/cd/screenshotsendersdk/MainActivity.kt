@@ -1,9 +1,12 @@
 package com.cd.screenshotsendersdk
 
+import android.media.projection.MediaProjectionManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
@@ -21,9 +24,29 @@ import com.cd.screenshotsender.presentation.ScreenShotSenderSDK
 import com.cd.screenshotsendersdk.ui.theme.ScreenShotSenderSDKTheme
 
 class MainActivity : ComponentActivity() {
+
+
+    private lateinit var projectionManager: MediaProjectionManager
+
+    private val mediaProjectionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                ScreenShotSenderSDK.startSDK(
+                    this,
+                    result.resultCode,
+                    result.data!!,
+                    "deliveryapp.countrydelight.in.deliveryapp"
+                )
+            } else {
+                Toast.makeText(this, "Screen capture permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         enableEdgeToEdge()
+        requestMediaProjectionPermission()
         setContent {
             ScreenShotSenderSDKTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -38,7 +61,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        ScreenShotSenderSDK.startSDK(this, "deliveryapp.countrydelight.in.deliveryapp")
+    }
+
+    private fun requestMediaProjectionPermission() {
+        val intent = projectionManager.createScreenCaptureIntent()
+        mediaProjectionLauncher.launch(intent)
     }
 
     override fun onPause() {
@@ -54,7 +81,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     }
     OutlinedTextField(value, onValueChange = {
         value = it
-    },modifier= Modifier.padding(32.dp))
+    }, modifier = Modifier.padding(32.dp))
     Text(
         text = "Hello $name!",
         modifier = modifier

@@ -2,12 +2,14 @@ package com.cd.screenshotsender.presentation.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import com.cd.screenshotsender.presentation.FileUploadTracker
+import com.cd.screenshotsender.presentation.ScreenshotHelper
 import com.cd.screenshotsender.presentation.utils.DataUiResponseStatus
 import com.cd.screenshotsender.presentation.utils.FunctionHelper.showToast
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +33,7 @@ internal class TrackingOverlayManager(
     private var rootView: View? = null
     private lateinit var packageName: String
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var screenShotHelper: ScreenshotHelper? = null
 
     /**
      * Show the tracking overlay
@@ -103,6 +106,11 @@ internal class TrackingOverlayManager(
             isOverlayShown = false
             context.showToast("Error showing overlay ${e.localizedMessage}")
         }
+    }
+
+    fun setMediaProjectionData(resultCode: Int, resultData: Intent) {
+        screenShotHelper = ScreenshotHelper(context, resultCode, resultData)
+        screenShotHelper?.initMediaProjection()
     }
 
     /**
@@ -222,8 +230,10 @@ internal class TrackingOverlayManager(
                 overlayView?.visibility = View.GONE
                 callback()
             } catch (e: Exception) {
+                e.printStackTrace()
                 context.showToast("Error capturing screenshot: ${e.localizedMessage}")
             } finally {
+                delay(200)
                 overlayView?.visibility = View.VISIBLE
             }
         }
@@ -231,12 +241,19 @@ internal class TrackingOverlayManager(
 
     private fun sendScreenShotToServer() {
         temporarilyHideOverlay {
-            val view = getRootView()
-            if (view != null) {
-                fileUploadTracker.sendScreenShot(context, view, packageName)
+            if (screenShotHelper == null) {
+                context.showToast("Permission Denied , Please Grant Permission Again")
             } else {
-                context.showToast("No view available for screenshot. Please ensure app is in foreground.")
+                screenShotHelper?.captureScreenshot {
+                    fileUploadTracker.sendScreenShot(context, it, packageName)
+                }
             }
+//            val view = getRootView()
+//            if (view != null) {
+//                fileUploadTracker.sendScreenShot(context, view, packageName)
+//            } else {
+//                context.showToast("No view available for screenshot. Please ensure app is in foreground.")
+//            }
         }
     }
 

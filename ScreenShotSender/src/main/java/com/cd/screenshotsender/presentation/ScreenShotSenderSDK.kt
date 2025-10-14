@@ -13,7 +13,12 @@ object ScreenShotSenderSDK {
 
     private const val OVERLAY_PERMISSION_REQUEST_CODE = 1234
 
-    fun startSDK(activity: Activity, packageName: String? = null) {
+    fun startSDK(
+        activity: Activity,
+        resultCode: Int,
+        resultData: Intent?,
+        packageName: String? = null
+    ) {
         if (!Settings.canDrawOverlays(activity)) {
             requestOverlayPermission(activity)
         }
@@ -21,6 +26,8 @@ object ScreenShotSenderSDK {
         try {
             val intent = Intent(activity, ScreenShotSenderService::class.java)
             intent.putExtra("packageName", packageName ?: activity.packageName)
+            intent.putExtra("resultCode", resultCode)
+            intent.putExtra("data", resultData)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 activity.startForegroundService(intent)
             } else {
