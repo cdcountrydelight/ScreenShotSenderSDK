@@ -74,7 +74,6 @@ internal class ScreenshotHelper(
         }, 200)
     }
 
-    @SuppressLint("InternalInsetResource", "DiscouragedApi")
     private fun getStatusBarHeight(context: Context): Int {
         val resId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
         return if (resId > 0) context.resources.getDimensionPixelSize(resId) else 0

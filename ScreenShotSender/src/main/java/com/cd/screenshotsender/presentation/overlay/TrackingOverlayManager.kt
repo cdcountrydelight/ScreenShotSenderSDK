@@ -1,6 +1,5 @@
 package com.cd.screenshotsender.presentation.overlay
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -30,7 +29,6 @@ internal class TrackingOverlayManager(
     private var overlayView: ViewBasedTrackingOverlay? = null
     private var overlayParams: WindowManager.LayoutParams? = null
     private var isOverlayShown = false
-    private var rootView: View? = null
     private lateinit var packageName: String
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var screenShotHelper: ScreenshotHelper? = null
@@ -167,64 +165,6 @@ internal class TrackingOverlayManager(
         }
     }
 
-    /**
-     * Get the root view for screenshot capture
-     * This tries multiple approaches to find a suitable root view
-     */
-    private fun getRootView(): View? {
-        return rootView ?: findRootViewFromWindowManager()
-    }
-
-    /**
-     * Try to find the root view from the window manager
-     */
-    @SuppressLint("PrivateApi")
-    private fun findRootViewFromWindowManager(): View? {
-        return try {
-            // Method 1: Try to get root views from WindowManager via reflection
-            val windowManagerGlobal = Class.forName("android.view.WindowManagerGlobal")
-                .getMethod("getInstance")
-                .invoke(null)
-            val getViewRootNames = windowManagerGlobal.javaClass
-                .getDeclaredMethod("getViewRootNames")
-            val getRootView = windowManagerGlobal.javaClass
-                .getDeclaredMethod("getRootView", String::class.java)
-            val viewRootNames = getViewRootNames.invoke(windowManagerGlobal) as Array<*>
-            for (name in viewRootNames) {
-                val rootView = getRootView.invoke(windowManagerGlobal, name) as? View
-                if (rootView != null && rootView != overlayView && isMainActivityView(rootView)) {
-                    return rootView
-                }
-            }
-            for (name in viewRootNames) {
-                val rootView = getRootView.invoke(windowManagerGlobal, name) as? View
-                if (rootView != null && rootView != overlayView) {
-                    return rootView
-                }
-            }
-            null
-        } catch (e: Exception) {
-            context.showToast("Unable to find root view ${e.localizedMessage}")
-            null
-        }
-    }
-
-    /**
-     * Check if this view likely belongs to the main activity
-     */
-    private fun isMainActivityView(view: View): Boolean {
-        return try {
-            val context = view.context
-            val className = context.javaClass.simpleName
-            className.contains("Activity") ||
-                    className.contains("MainActivity") ||
-                    view.width > 500 && view.height > 500 // Large views are likely main content
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-
     fun setPackageName(packageName: String) {
         this.packageName = packageName
     }
@@ -253,12 +193,6 @@ internal class TrackingOverlayManager(
                     fileUploadTracker.sendScreenShot(context, it, packageName)
                 }
             }
-//            val view = getRootView()
-//            if (view != null) {
-//                fileUploadTracker.sendScreenShot(context, view, packageName)
-//            } else {
-//                context.showToast("No view available for screenshot. Please ensure app is in foreground.")
-//            }
         }
     }
 
