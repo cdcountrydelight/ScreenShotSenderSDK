@@ -75,6 +75,7 @@ internal class ScreenShotSenderService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         overlayManager.hideOverlay()
+        overlayManager.releaseMediaProjection()
         serviceScope.cancel()
         instance = null
         HttpClientManager.clearInstance()

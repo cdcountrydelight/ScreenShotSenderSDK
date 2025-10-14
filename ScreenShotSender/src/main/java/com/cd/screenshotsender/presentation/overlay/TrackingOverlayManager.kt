@@ -129,6 +129,11 @@ internal class TrackingOverlayManager(
         }
     }
 
+
+    fun releaseMediaProjection() {
+        screenShotHelper?.releaseVirtualDisplay()
+    }
+
     /**
      * Observe upload status and update FAB states accordingly
      */
