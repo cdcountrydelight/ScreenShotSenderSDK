@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import androidx.core.net.toUri
+import com.cd.screenshotsender.data.network.HttpClientManager
 import com.cd.screenshotsender.presentation.service.ScreenShotSenderService
 import com.cd.screenshotsender.presentation.utils.FunctionHelper.showToast
 
@@ -16,8 +17,9 @@ object ScreenShotSenderSDK {
     fun startSDK(
         activity: Activity,
         resultCode: Int,
+        isProdEnv: Boolean,
         resultData: Intent?,
-        packageName: String? = null
+        packageName: String? = null,
     ) {
         if (!Settings.canDrawOverlays(activity)) {
             requestOverlayPermission(activity)
@@ -28,6 +30,8 @@ object ScreenShotSenderSDK {
             intent.putExtra("packageName", packageName ?: activity.packageName)
             intent.putExtra("resultCode", resultCode)
             intent.putExtra("data", resultData)
+            intent.putExtra("isProdEnv", isProdEnv)
+            HttpClientManager.isProdEnv = isProdEnv
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 activity.startForegroundService(intent)
             } else {

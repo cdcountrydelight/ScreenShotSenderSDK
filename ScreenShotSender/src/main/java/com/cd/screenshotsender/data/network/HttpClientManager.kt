@@ -18,6 +18,8 @@ internal object HttpClientManager {
     @Volatile
     private var apiService: SendScreenShotApiService? = null
 
+    var isProdEnv = true
+
     fun getApiService(context: Context): SendScreenShotApiService {
         return apiService ?: synchronized(this) {
             apiService ?: createRetrofit(context).create(SendScreenShotApiService::class.java)
@@ -30,7 +32,7 @@ internal object HttpClientManager {
     private fun createRetrofit(context: Context): Retrofit {
         return retrofit ?: synchronized(this) {
             retrofit ?: Retrofit.Builder()
-                .baseUrl("https://qa-stock.countrydelight.in/api/cd_training/")
+                .baseUrl(if (isProdEnv) "https://stock.countrydelight.in/api/cd_training/" else "https://qa-stock.countrydelight.in/api/cd_training/")
                 .client(createOkHttpClient(context))
                 .addConverterFactory(
                     GsonConverterFactory.create(
@@ -46,10 +48,12 @@ internal object HttpClientManager {
     }
 
     private fun createOkHttpClient(context: Context): OkHttpClient {
-        return OkHttpClient.Builder()
+        val baseClient = OkHttpClient.Builder()
             .addInterceptor(AppNetworkInterceptorImpl(context))
-            .addInterceptor(getChuckerInterceptor(context))
-            .connectTimeout(30, TimeUnit.SECONDS)
+        if (!isProdEnv) {
+            baseClient.addInterceptor(getChuckerInterceptor(context))
+        }
+        return baseClient.connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()

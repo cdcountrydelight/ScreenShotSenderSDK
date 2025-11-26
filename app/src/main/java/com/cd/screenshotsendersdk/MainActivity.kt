@@ -44,8 +44,9 @@ class MainActivity : ComponentActivity() {
                 ScreenShotSenderSDK.startSDK(
                     this,
                     result.resultCode,
+                    false,
                     result.data!!,
-                    "deliveryapp.countrydelight.in.deliveryapp"
+                    "deliveryapp.countrydelight.in.deliveryapp",
                 )
             } else {
                 Toast.makeText(this, "Screen capture permission denied", Toast.LENGTH_SHORT).show()
